@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183153">
+  <title>TU SC1 Navigator · QR + Sensor Walking Experiment</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+  <script src="pdr.js" defer></script>
+</head>
+<body>
+  <header>
+    <div>
+      <strong>🧭 TU SC1 Navigator</strong>
+      <small>ทดลองประมาณตำแหน่งขณะเดิน · QR + เซนเซอร์</small>
+    </div>
+    <span class="tag">PDR ทดลอง v3</span>
+  </header>
+  <main>
+    <section class="panel">
+      <h1>สแกน QR แล้วทดลองเดินตามจุดสีน้ำเงิน</h1>
+      <p class="muted">เริ่มจาก QR ที่ Zone A หรือ Zone B จากนั้นอนุญาตเซนเซอร์ ตั้งทิศทาง และเดินจริงเพื่อทดลองเลื่อนจุดสีน้ำเงิน (เป็นเพียงตำแหน่งประมาณ ไม่ใช่ GPS)</p>
+      <div class="demoButtons">
+        <button type="button" id="simulateA" class="sim">▶ จำลองสแกน QR · Zone A</button>
+        <button type="button" id="simulateB" class="sim">▶ จำลองสแกน QR · Zone B</button>
+      </div>
+      <div id="locationStatus" class="locationStatus" role="status" aria-live="polite">ยังไม่ได้สแกน QR หรือเลือกจุดเริ่มต้น</div>
+      <div class="fields">
+        <label>จุดเริ่มต้นที่เลือก
+          <select id="start">
+            <option value="a">ทางเข้า Zone A · ชั้น 1</option>
+            <option value="b">ทางเข้า Zone B · ชั้น 1</option>
+          </select>
+        </label>
+        <label>ห้องปลายทาง
+          <input id="room" list="roomList" placeholder="เช่น SC1001 / SC3005" autocomplete="off">
+          <datalist id="roomList"></datalist>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="routeBtn" type="button">แสดงเส้นทางตัวอย่าง</button>
+        <button id="clearBtn" type="button" class="secondary">ล้างเส้นทาง</button>
+      </div>
+      <p id="status" role="status" aria-live="polite" class="status">คุณสามารถทดลอง QR โดยกดปุ่มจำลองด้านบนได้</p>
+      <div class="note">⚠️ <b>โหมดเซนเซอร์เป็นการทดลอง ไม่ใช่ระบบระบุตำแหน่งที่แม่นยำหรือรับรองความปลอดภัย</b> จุดสีน้ำเงินเคลื่อนตามการนับก้าวและทิศที่ประมาณจากโทรศัพท์ อาจเคลื่อนผิด ตัดผ่านผนัง และไม่รู้ว่าคุณเปลี่ยนชั้น ทางเดิน ประตู บันไดยังไม่ผ่านการตรวจหน้างาน</div>
+    </section>
+
+    <section class="panel sensorPanel" aria-labelledby="sensorHeading">
+      <h2 id="sensorHeading">🧪 ทดลองติดตามการเดินด้วยเซนเซอร์</h2>
+      <p class="muted">ใช้โทรศัพท์จริงและเปิดเว็บผ่าน HTTPS (หรือ localhost สำหรับการทดลองบนคอมพิวเตอร์) วางโทรศัพท์ให้แบนและหันหัวโทรศัพท์ไปทางที่เดิน ขั้นแรกเลือก QR ให้ตำแหน่งเริ่มต้นก่อน</p>
+      <div class="actions">
+        <button type="button" id="sensorStart">1. เปิดเซนเซอร์โทรศัพท์</button>
+        <button type="button" id="sensorStop" class="secondary" disabled>หยุดอ่านเซนเซอร์</button>
+      </div>
+      <div class="fields">
+        <label>2. ทิศทางที่คุณหันหน้าอยู่บนแปลน
+          <select id="mapDirection">
+            <option value="0">ขึ้นด้านบนของแผนที่ ↑</option>
+            <option value="90">ไปทางขวาของแผนที่ →</option>
+            <option value="180">ลงด้านล่างของแผนที่ ↓</option>
+            <option value="270">ไปทางซ้ายของแผนที่ ←</option>
+          </select>
+        </label>
+        <label>ระยะเลื่อนต่อก้าว (หน่วยพิกัดภาพ)
+          <input id="pixelsStep" type="range" min="2" max="20" value="7" step="1">
+          <span id="pixelsValue">7 หน่วย/ก้าว (ต้องปรับเทียบ)</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" id="calibrateHeading" class="sim">3. ตั้งทิศทางขณะหันโทรศัพท์ตามทางเดิน</button>
+        <button type="button" id="resetPosition" class="secondary">กลับไปจุด QR ล่าสุด</button>
+      </div>
+      <div class="fields">
+        <label>ความไวของระบบนับก้าว (ทดลอง)
+          <input id="stepSensitivity" type="range" min="0.5" max="4" value="1.5" step="0.1">
+          <span id="sensitivityValue">1.5 (เพิ่มหากนับก้าวเกิน)</span>
+        </label>
+        <div class="sensorReading">
+          <strong>จำนวนก้าวที่ตรวจพบ: <span id="stepCount">0</span></strong>
+          <span>ทิศที่ประมาณบนแผนที่: <span id="headingReadout">ยังไม่ตั้งทิศ</span></span>
+          <span>ตำแหน่งโดยประมาณ: <span id="positionReadout">จุด QR</span></span>
+        </div>
+      </div>
+      <div id="sensorStatus" class="locationStatus" role="status" aria-live="polite">ยังไม่เปิดเซนเซอร์ — ใช้ปุ่มจำลองก้าวด้านล่างเพื่อทดสอบหน้าจอบนคอมพิวเตอร์ได้</div>
+      <div class="actions">
+        <button type="button" id="manualStep" class="secondary">ทดสอบ: ขยับ 1 ก้าว (จำลอง)</button>
+      </div>
+      <p class="muted tiny">การจำลองก้าวไม่ใช่ข้อมูลจากเซนเซอร์จริง; การเคลื่อนที่จากเซนเซอร์ต้องมีการอนุญาต นับก้าวได้ และตั้งทิศทางสำเร็จ ระบบไม่จับตำแหน่งตลอดเวลาเมื่อปิดหน้าเว็บ</p>
+    </section>
+
+    <section class="panel mapPanel">
+      <div class="mapTop">
+        <div><h2>แผนผังอาคาร SC1</h2><p id="floorNote" class="muted"></p></div>
+        <div class="floorTabs" id="floorTabs" aria-label="เลือกชั้น"></div>
+      </div>
+      <div class="mapScroll">
+        <div class="mapStage" id="mapStage">
+          <img id="floorImage" src="assets/1.jpg" alt="แปลนอาคาร SC1 ชั้น 1">
+          <svg id="overlay" viewBox="0 0 1284 1134" preserveAspectRatio="none" aria-label="จุดตำแหน่งและเส้นทางบนแผนที่">
+            <g id="routeLayer"></g>
+            <g id="positionLayer"></g>
+          </svg>
+        </div>
+      </div>
+      <div class="legend"><span><i class="legendDot"></i> จุดสีน้ำเงินจาก QR / ตำแหน่งทดลอง</span><span><i class="legendLine"></i> เส้นทางตัวอย่าง</span><span>🟠 ห้องปลายทาง</span></div>
+      <p id="floorHelp" class="muted tiny"></p>
+      <div id="steps" class="steps"></div>
+    </section>
+
+    <section class="panel">
+      <h2>ลิงก์สำหรับ QR เพื่อรีเซ็ตตำแหน่ง</h2>
+      <p class="muted">เมื่อเว็บไซต์ขึ้นโฮสต์ HTTPS แล้ว ให้ใช้ URL ของเว็บไซต์นั้นต่อท้ายด้วย <code>?start=a</code> และ <code>?start=b</code> ตามลำดับ สร้าง QR โดยใช้ไฟล์ <code>make_qr.py</code> ที่แนบให้</p>
+      <div class="qrRow">
+        <a id="linkA" href="?start=a">ทดลองลิงก์ Zone A</a>
+        <a id="linkB" href="?start=b">ทดลองลิงก์ Zone B</a>
+      </div>
+      <div class="qrRow">
+        <button class="secondary" id="copyA" type="button">คัดลอกลิงก์ Zone A</button>
+        <button class="secondary" id="copyB" type="button">คัดลอกลิงก์ Zone B</button>
+      </div>
+      <p class="muted tiny">ลิงก์ file:// บนคอมพิวเตอร์ยังสแกนจากโทรศัพท์เพื่อเปิดหน้าเดียวกันไม่ได้ ต้องเผยแพร่เว็บไซต์บนโฮสต์ก่อน หรือใช้เว็บเซิร์ฟเวอร์ภายในเครือข่ายพร้อม URL ที่โทรศัพท์เข้าถึงได้</p>
+    </section>
+  </main>
+  <footer>ตัวอย่างโค้ดเพื่อเรียนรู้ · โปรดตรวจสอบตำแหน่ง QR และเส้นทางของ SC1 ก่อนติดตั้งจริง</footer>
+</body>
+</html>

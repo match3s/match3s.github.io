@@ -1,0 +1,37 @@
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,'Segoe UI',Tahoma,sans-serif;background:#f2f5fa;color:#17263d}
+header{background:#183153;color:white;padding:17px max(20px,calc((100vw - 1140px)/2));display:flex;justify-content:space-between;align-items:center;gap:10px}
+header strong{display:block;font-size:21px}header small{display:block;color:#d6e2f1;margin-top:3px}
+.tag{background:#395778;padding:7px 12px;border-radius:25px;font-size:12px;white-space:nowrap}
+main{max-width:1140px;margin:22px auto;padding:0 14px;display:grid;gap:18px}
+.panel{background:white;padding:20px;border-radius:16px;box-shadow:0 3px 16px #1a335211}
+h1{font-size:25px;margin:0 0 8px}h2{font-size:19px;margin:0 0 5px}
+.muted{color:#596777;margin:4px 0 14px;font-size:14px;line-height:1.65}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+label{display:grid;gap:7px;font-weight:600;font-size:14px}select,input{border:1px solid #b6c4d4;border-radius:10px;padding:12px;font:inherit;width:100%;background:white;color:#17263d}
+.actions,.qrRow,.demoButtons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+button{border:0;background:#1654ba;color:white;border-radius:10px;padding:11px 15px;font:inherit;font-weight:650;cursor:pointer}
+button:hover{filter:brightness(.94)}button:focus-visible,a:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}
+.secondary{background:#e9eff8;color:#1d426e}.sim{background:#0f766e}
+.status{font-weight:650;margin:15px 0 0;line-height:1.6}
+.locationStatus{background:#edf7ff;border:1px solid #bfdbfe;border-radius:10px;padding:13px;margin-top:14px;font-size:14px;line-height:1.6}
+.note{background:#fff7e8;border:1px solid #efdcaf;border-radius:9px;padding:12px;font-size:13px;line-height:1.7;margin-top:16px}
+.mapTop{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.floorTabs{display:flex;gap:5px;flex-wrap:wrap}.floorTabs button{padding:8px 12px;background:#edf2f7;color:#30445f}.floorTabs button.active{background:#1654ba;color:white}
+.mapScroll{overflow:auto;border-radius:10px;border:1px solid #d8e0e9;background:white}
+.mapStage{position:relative;width:100%;min-width:620px}.mapStage img{display:block;width:100%;height:auto}
+.mapStage svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:16px;font-size:12px;color:#536171;padding:10px 1px}
+.legendDot{display:inline-block;vertical-align:middle;width:13px;height:13px;border:3px solid #fff;outline:2px solid #2563eb;border-radius:50%;background:#2563eb;margin-right:5px}
+.legendLine{display:inline-block;width:20px;height:5px;border-radius:5px;vertical-align:middle;background:#0891b2;margin-right:5px}
+.steps{background:#f1f6fc;border-radius:10px;padding:12px;line-height:1.75}.steps:empty{display:none}.steps ol{margin:8px 0;padding-left:24px}.steps button{margin:7px 6px 0 0;font-size:13px}
+.tiny{font-size:12px;margin-top:12px}a{color:#1654ba}code{background:#e9eff8;padding:1px 4px;border-radius:3px}
+footer{text-align:center;color:#677789;font-size:12px;padding:16px}
+@media(max-width:620px){.fields{grid-template-columns:1fr}h1{font-size:21px}.panel{padding:15px}.mapStage{min-width:560px}.tag{font-size:10px}}
+
+/* PDR experiment additions */
+button:disabled{opacity:.52;cursor:not-allowed;filter:none}
+.sensorReading{display:grid;gap:8px;padding:11px;border:1px solid #d8e0e9;border-radius:10px;background:#f7fafc;font-size:13px;font-weight:400}
+.sensorReading strong{font-size:15px}
+.sensorPanel input[type=range]{padding:0;border:0;margin:6px 0 0;accent-color:#1654ba;cursor:pointer}
+.sensorPanel label span{font-size:12px;color:#475569;font-weight:400}
