@@ -104,6 +104,8 @@ const floorHelpEl = document.querySelector('#floorHelp');
 
 let floor = 1;
 let lastRoute = null;
+// Keep the displayed destination independent of unfinished search input.
+let lastRouteDestination = null;
 let positionActive = false;
 let positionSource = 'none'; // 'none', 'qr', or 'manual'
 
@@ -120,10 +122,13 @@ const imageSizes = {
 
 const params = new URLSearchParams(window.location.search);
 const scannedStart = params.get('start');
-if (Object.hasOwn(qrLocations, scannedStart)) {
+const validQr = Object.hasOwn(qrLocations, scannedStart);
+let qrError = params.has('start') && !validQr;
+const navigationType = performance.getEntriesByType?.('navigation')?.[0]?.type ?? 'unknown';
+if (validQr) {
   startEl.value = scannedStart;
-  positionActive = true;
-  positionSource = 'qr';
+  positionActive = navigationType === 'navigate';
+  positionSource = positionActive ? 'qr' : 'none';
 }
 if (params.get('room')) roomEl.value = params.get('room').toUpperCase();
 
@@ -255,7 +260,7 @@ function coordinateForRoute(key) {
   const [fStr, node] = key.split(':');
   const f = Number(fStr);
   if (node === 'room') {
-    const room = rooms.get(roomEl.value.toUpperCase().trim());
+    const room = lastRouteDestination;
     return renderPoint(f, [room.x, room.y]);
   }
   return renderPoint(f, geometry[f][node]);
@@ -326,7 +331,13 @@ function drawBlueDot() {
 }
 
 function renderLocationStatus() {
-  if (!positionActive) {
+  const confirm = document.querySelector('#confirmQr');
+  const selected = qrLocations[startEl.value];
+  confirm.disabled = !selected;
+  confirm.textContent = selected ? `ฉันอยู่ที่จุด QR นี้ · ${selected.label}` : 'ฉันอยู่ที่จุด QR นี้ · กรุณาเลือกจุด';
+  if (qrError) {
+    locationStatusEl.textContent = 'ไม่รู้จักรหัสจุด QR นี้ กรุณาสแกนป้ายที่ถูกต้อง หรือเลือกและยืนยันจุดที่คุณอยู่จริง';
+  } else if (!positionActive) {
     locationStatusEl.textContent = 'ยังไม่ได้สแกน QR หรือเลือกจุดเริ่มต้น';
   } else {
     const label = qrLocations[startEl.value].label;
@@ -353,15 +364,16 @@ function calculate() {
     statusEl.textContent = 'ไม่พบรหัสห้องนี้ในชุดข้อมูลต้นแบบ กรุณาเลือกรหัสจากรายการ';
     stepsEl.replaceChildren();
     lastRoute = null;
+    lastRouteDestination = null;
     draw();
     return;
   }
   if (!positionActive) {
-    // Allow testing without a physical QR, but clearly label it manual.
-    positionActive = true;
-    positionSource = 'manual';
+    statusEl.textContent = qrError ? 'รหัส QR ไม่ถูกต้อง กรุณาเลือกและยืนยันจุดเริ่มต้นก่อน' : 'กรุณายืนยันจุดที่คุณอยู่จริง หรือคืนตำแหน่งก่อนค้นหาเส้นทาง';
+    return;
   }
   lastRoute = route(startEl.value, room);
+  lastRouteDestination = lastRoute ? rooms.get(room) : null;
   if (!lastRoute) {
     statusEl.textContent = 'ยังไม่พบเส้นทางในข้อมูล Graph ของต้นแบบ';
     stepsEl.replaceChildren();
@@ -407,12 +419,15 @@ function calculate() {
 // (11) QR links: URL search parameter is all that's needed. No camera SDK.
 function activateStart(zone, source) {
   if (!Object.hasOwn(qrLocations, zone)) return;
+  const destination = lastRouteDestination?.id;
+  window.SC1PDR?.pause();
   window.SC1PDR?.reset(zone);
+  qrError = false;
   startEl.value = zone;
   positionActive = true;
   positionSource = source;
   showFloor(1);
-  if (lastRoute) calculate();
+  if (destination) { roomEl.value = destination; calculate(); }
   else statusEl.textContent = `กำหนดจุดเริ่มต้น ${qrLocations[zone].label} แล้ว`;
 }
 
@@ -441,11 +456,20 @@ async function copyQrLink(zone) {
 // (12) Button events.
 document.querySelector('#simulateA').addEventListener('click', () => activateStart('a', 'qr'));
 document.querySelector('#simulateB').addEventListener('click', () => activateStart('b', 'qr'));
-startEl.addEventListener('change', () => activateStart(startEl.value, 'manual'));
+startEl.addEventListener('change', () => {
+  window.SC1PDR?.pause();
+  positionActive = false;
+  lastRoute = null;
+  stepsEl.replaceChildren();
+  draw();
+  statusEl.textContent = 'เลือกจุดแล้ว กรุณากดปุ่มยืนยันเมื่อคุณอยู่ที่จุดนั้นจริง';
+});
+document.querySelector('#confirmQr').addEventListener('click', () => activateStart(startEl.value, 'qr'));
 document.querySelector('#routeBtn').addEventListener('click', calculate);
 roomEl.addEventListener('keydown', event => { if (event.key === 'Enter') calculate(); });
 document.querySelector('#clearBtn').addEventListener('click', () => {
   lastRoute = null;
+  lastRouteDestination = null;
   roomEl.value = '';
   stepsEl.replaceChildren();
   statusEl.textContent = 'ล้างเส้นทางแล้ว (ยังคงจุดเริ่มต้นล่าสุดไว้)';
@@ -458,4 +482,4 @@ for (const zone of ['a', 'b']) {
 }
 
 showFloor(1);
-if (roomEl.value.trim()) calculate();
+if (positionActive && roomEl.value.trim()) calculate();

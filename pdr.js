@@ -73,6 +73,7 @@
     state.zone = zone;
     state.position = null;
     state.steps = 0;
+    state.heading = null;
     state.headingOffset = null;
     state.accelBaseline = null;
     state.stepArmed = true;

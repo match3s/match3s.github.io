@@ -36,6 +36,7 @@
       <div class="fields">
         <label>จุดเริ่มต้นที่เลือก
           <select id="start">
+            <option value="">เลือกจุดที่คุณอยู่จริง</option>
             <option value="a">ทางเข้า Zone A · ชั้น 1</option>
             <option value="b">ทางเข้า Zone B · ชั้น 1</option>
           </select>
@@ -46,6 +47,7 @@
         </label>
       </div>
       <div class="actions">
+        <button id="confirmQr" type="button" class="secondary" disabled>ฉันอยู่ที่จุด QR นี้ · กรุณาเลือกจุด</button>
         <button id="routeBtn" type="button">ดูเส้นทาง</button>
         <button id="clearBtn" type="button" class="secondary">ล้างเส้นทาง</button>
       </div>

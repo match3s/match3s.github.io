@@ -1,6 +1,7 @@
 'use strict';
 (() => {
   const key = 'sc1-navigation-v1';
+  const maxAgeMs = 20 * 60 * 1000;
   const dialog = document.getElementById('resumeDialog');
   const saveStatus = document.getElementById('saveStatus');
   let pending = false;
@@ -12,6 +13,7 @@
   function valid(s) {
     return s && s.version === 1 && Object.hasOwn(qrLocations, s.zone)
       && Number.isFinite(s.time) && s.time <= Date.now() + 60000
+      && Date.now() - s.time < maxAgeMs
       && Number.isInteger(s.steps) && s.steps >= 0
       && ['qr', 'manual', 'sensor'].includes(s.mode)
       && (s.room === '' || rooms.has(s.room))
@@ -30,7 +32,7 @@
 
   function save() {
     if (pending || !positionActive) return;
-    const room = roomEl.value.toUpperCase().trim();
+    const room = lastRouteDestination?.id ?? '';
     const snapshot = { ...window.SC1PDR.snapshot(), version: 1,
       room: rooms.has(room) ? room : '', time: Date.now() };
     try { localStorage.setItem(key, JSON.stringify(snapshot)); }
@@ -46,7 +48,7 @@
   const query = new URLSearchParams(location.search);
   const differentStart = Object.hasOwn(qrLocations, query.get('start')) && query.get('start') !== saved?.zone;
   const differentRoom = query.has('room') && query.get('room').toUpperCase().trim() !== saved?.room;
-  if (saved && !differentStart && !differentRoom) {
+  if (navigationType === 'reload' && !qrError && saved && !differentStart && !differentRoom) {
     pending = true;
     // Never present the saved point as current until confirmed.
     positionActive = false;
@@ -54,7 +56,12 @@
     document.getElementById('resumeDescription').textContent =
       `${saved.room ? 'ปลายทาง ' + saved.room : 'ยังไม่ได้เลือกห้อง'} · ชั้น 1 · ${saved.steps} ก้าว${saved.mode === 'manual' ? ' (จำลอง)' : ''} · บันทึก ${new Date(saved.time).toLocaleString('th-TH')}`;
     dialog.showModal();
-  } else save();
+  } else {
+    if (!positionActive && !qrError) {
+      statusEl.textContent = 'ยังไม่ยืนยันตำแหน่งปัจจุบัน กรุณากด “ฉันอยู่ที่จุด QR นี้” เมื่ออยู่ตรงป้ายจริง';
+    }
+    save();
+  }
 
   function dismiss() {
     pending = false;
@@ -62,6 +69,11 @@
   }
   document.getElementById('resumeYes').addEventListener('click', () => {
     if (!saved) return;
+    if (!valid(saved)) {
+      startFresh();
+      statusEl.textContent = 'ข้อมูลล่าสุดหมดอายุแล้ว (20 นาที) กรุณาเริ่มจากจุดที่คุณอยู่จริง';
+      return;
+    }
     startEl.value = saved.zone;
     roomEl.value = saved.room;
     positionActive = true;
@@ -78,6 +90,7 @@
     window.SC1PDR.reset(startEl.value);
     positionActive = false;
     lastRoute = null;
+    lastRouteDestination = null;
     roomEl.value = '';
     stepsEl.replaceChildren();
     dismiss(); draw();
