@@ -238,7 +238,18 @@
   // Small public interface used by the existing script.js.
   window.SC1PDR = {
     getPosition: () => state.position ? [...state.position] : null,
-    reset
+    snapshot: () => ({ zone: state.zone, position: state.position, steps: state.steps, mode: state.lastMode }),
+    restore: (saved) => {
+      stopSensors(); reset(saved.zone);
+      state.position = saved.position ? [...saved.position] : null;
+      state.steps = saved.steps; state.lastMode = saved.mode;
+      state.heading = null; state.headingOffset = null;
+      refreshReadings();
+      message("คืนตำแหน่งล่าสุดแล้ว · เปิดเซนเซอร์และตั้งทิศใหม่ก่อนเดินต่อ");
+      draw();
+    },
+    reset,
+    pause: () => { stopSensors(); state.heading = null; state.headingOffset = null; refreshReadings(); }
   };
 
   sensorStart.addEventListener('click', startSensors);

@@ -343,6 +343,7 @@ function draw() {
   drawRoute();
   drawBlueDot();
   renderLocationStatus();
+  window.SC1Session?.save();
 }
 
 function calculate() {

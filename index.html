@@ -9,6 +9,7 @@
   <script src="script.js" defer></script>
   <script src="pdr.js" defer></script>
   <script src="walk.js" defer></script>
+  <script src="session.js" defer></script>
 </head>
 <body>
   <header>
@@ -18,7 +19,15 @@
     </div>
     <span class="tag">รุ่นทดลอง</span>
   </header>
+  <dialog id="resumeDialog" aria-labelledby="resumeTitle">
+    <h2 id="resumeTitle">เดินทางต่อจากครั้งล่าสุด?</h2>
+    <p id="resumeDescription"></p>
+    <p>คุณยังอยู่ที่ตำแหน่งเดิมก่อนปิดหรือรีโหลดหน้าเว็บหรือไม่?</p>
+    <div class="actions"><button id="resumeYes" type="button">อยู่ที่เดิม · เดินทางต่อ</button><button id="resumeNo" class="secondary" type="button">ไม่อยู่ที่เดิม · เริ่มใหม่</button></div>
+    <p class="muted tiny">ตำแหน่งเป็นค่าประมาณ ระบบไม่ทราบการเดินระหว่างปิดหน้าเว็บ</p>
+  </dialog>
   <main>
+    <p id="saveStatus" class="note" role="status" hidden></p>
     <section class="panel destinationPanel">
       <h1>วันนี้ไปห้องไหน?</h1>
       <p class="muted">สแกน QR ที่ทางเข้า เลือกห้อง แล้วดูเส้นทางบนแผนที่</p>
